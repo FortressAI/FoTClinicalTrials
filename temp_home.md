@@ -1,15 +1,8 @@
+# Home
+
 # 🏥⚛️ Field of Truth Clinical Trials Wiki
 
 Welcome to the comprehensive documentation for the **Field of Truth Clinical Trials System** - a quantum-enhanced, GLP/GMP compliant platform for managing clinical trials from Phase 0 (In-Silico) through Phase III.
-
-## 🌐 **Live System Access**
-
-**🚀 Public Cloud:** https://fotclinicaltrials.streamlit.app/  
-**💻 Local Development:** http://localhost:8502  
-**📖 Complete User Guide:** [Complete User Guide](Complete-User-Guide)  
-**🌐 Cloud Deployment:** [Public Cloud Deployment](Public-Cloud-Deployment)  
-
----
 
 ## 📋 **Wiki Navigation**
 
@@ -183,3 +176,8 @@ streamlit run clinical_app.py
 **🔒 FDA Compliant | 🛡️ EMA Ready | ⚛️ Quantum Enhanced | 📊 Quality Assured**
 
 *This wiki is continuously updated to provide the most current information about the Field of Truth Clinical Trials system.*
+
+
+---
+**🏥⚛️ Field of Truth Clinical Trials - Home**
+**🔒 FDA Compliant | 🛡️ EMA Ready | ⚛️ Quantum Enhanced**

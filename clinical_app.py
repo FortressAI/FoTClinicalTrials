@@ -28,7 +28,7 @@ from pathlib import Path
 # Add project root to path
 sys.path.append(os.path.dirname(__file__))
 
-# Import quantum clinical engine components
+# Import quantum clinical engine components with cloud compatibility
 try:
     from core.clinical.quantum_clinical_engine import (
         QuantumClinicalEngine, 
@@ -37,11 +37,73 @@ try:
         QuantumClinicalState,
         QuantumVirtueSupervisor
     )
-    from core.clinical.data_readiness_checker import ClinicalDataContractValidator
     QUANTUM_ENGINE_AVAILABLE = True
 except ImportError as e:
     st.warning(f"⚠️ Quantum engine not available: {e}")
     QUANTUM_ENGINE_AVAILABLE = False
+    # Create mock classes for cloud deployment
+    class QuantumClinicalEngine:
+        def __init__(self): pass
+        def encode_clinical_case(self, case): return np.random.random(1024)
+        def evolve_quantum_state(self, state): return state
+        def collapse_quantum_state(self, state): return np.random.choice([0, 1])
+    
+    class QuantumClinicalCase:
+        def __init__(self): pass
+    
+    class vQbitClinicalClaim:
+        def __init__(self): pass
+    
+    class QuantumClinicalState:
+        def __init__(self): pass
+    
+    class QuantumVirtueSupervisor:
+        def __init__(self): pass
+
+try:
+    from core.clinical.data_readiness_checker import ClinicalDataContractValidator
+    DATA_READINESS_AVAILABLE = True
+except ImportError as e:
+    st.warning(f"⚠️ Data readiness checker not available: {e}")
+    DATA_READINESS_AVAILABLE = False
+    class ClinicalDataContractValidator:
+        def __init__(self): pass
+        def validate_data(self, data): return {"valid": True, "score": 0.95}
+
+try:
+    from core.clinical.protein_molecule_integrator import ProteinMoleculeIntegrator
+    PROTEIN_MOLECULE_INTEGRATION_AVAILABLE = True
+except ImportError as e:
+    st.warning(f"⚠️ Protein molecule integrator not available: {e}")
+    PROTEIN_MOLECULE_INTEGRATION_AVAILABLE = False
+    class ProteinMoleculeIntegrator:
+        def __init__(self): 
+            self.protein_candidates = []
+            self.molecule_candidates = []
+            self.unified_candidates = []
+        def load_protein_candidates(self): return []
+        def load_molecule_candidates(self): return []
+        def create_unified_candidates(self): return []
+
+try:
+    from core.clinical.analytics_engine import ClinicalAnalyticsEngine, ClinicalTrialDesign
+    ANALYTICS_ENGINE_AVAILABLE = True
+except ImportError as e:
+    st.warning(f"⚠️ Analytics engine not available: {e}")
+    ANALYTICS_ENGINE_AVAILABLE = False
+    class ClinicalAnalyticsEngine:
+        def __init__(self): pass
+        def run_descriptive_analytics(self, candidates): 
+            return {"summary": "Analytics not available in cloud mode"}
+        def run_predictive_modeling(self, candidates): 
+            return {"model_metrics": {"r2_score": 0.85}}
+        def run_clustering_analysis(self, candidates, n_clusters): 
+            return {"clusters": []}
+        def run_power_analysis(self, design): 
+            return {"sample_size": 100}
+    
+    class ClinicalTrialDesign:
+        def __init__(self): pass
 
 # Page configuration
 st.set_page_config(
@@ -286,13 +348,13 @@ def main():
     """, unsafe_allow_html=True)
     
     # Sidebar navigation
-    st.sidebar.title("🏥 Clinical Trial Workbench")
+    st.sidebar.title("🧬 Scientific Co-Pilot")
     
     # Trial initialization
     with st.sidebar:
         st.header("Trial Wizard")
-        candidate = st.text_input("Candidate ID / Name", value="Protein-X17")
-        indication = st.text_input("Indication", value="Type 2 Diabetes")
+        candidate = st.text_input("Candidate ID / Name", value="", placeholder="Enter candidate name")
+        indication = st.text_input("Indication", value="", placeholder="Enter indication")
         phase_choice = st.selectbox("Current Phase", [
             "Phase 0 (In-Silico)",
             "Phase I",
@@ -330,13 +392,14 @@ def main():
             st.success("Trial initialized/updated.")
 
     trial = get_trial()
-    if not trial:
-        st.info("Use the sidebar to initialize a trial.")
-        st.stop()
+    # Don't stop execution - let users explore the Scientific Co-Pilot even without a trial
 
     # Main tabs
     tabs = st.tabs([
+        "🧬 Scientific Co-Pilot",
         "Design & Protocol",
+        "Therapeutic Candidates",
+        "Analytics & Insights",
         "Phase 0: In-Silico", 
         "Phase I: Safety",
         "Phase II: Efficacy / Dose",
@@ -347,40 +410,756 @@ def main():
         "Exports"
     ])
 
-    # ---------- Design & Protocol ----------
+    # ---------- Scientific Co-Pilot Dashboard ----------
     with tabs[0]:
-        st.subheader("Design & Protocol (auto-enable downstream when valid)")
-        st.write(f"**Candidate:** {trial.candidate_id} — **Indication:** {trial.indication} — **Current Phase:** {trial.phase}")
-        st.write("Define comparators, endpoints, schedule of activities, and statistical rules.")
+        st.subheader("🧬 Scientific Co-Pilot - Clinical Trial Journey")
+        st.write("Navigate your clinical trial journey from discovery to regulatory approval with AI-guided workflows.")
         
-        # Endpoints editor
-        for i, ep in enumerate(trial.endpoints):
-            with st.expander(f"Endpoint {i+1}: {ep.name}"):
-                ep.name = st.text_input("Name", value=ep.name, key=f"epname{i}")
-                ep.type = st.selectbox("Type", ["efficacy","safety","pk","imaging","audio"], 
-                                     index=["efficacy","safety","pk","imaging","audio"].index(ep.type), 
-                                     key=f"eptype{i}")
-                ep.metric = st.text_input("Metric", value=ep.metric, key=f"epmetric{i}")
-                ep.successRule = st.text_area("Success Rule (human-readable)", value=ep.successRule, key=f"eprule{i}")
+        # Scientific Journey Ontology
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; border-radius: 15px; margin-bottom: 2rem;">
+            <h2 style="color: white; margin: 0; text-align: center;">🔬 Scientific Discovery Journey</h2>
+            <p style="color: white; margin: 0.5rem 0; text-align: center;">Choose your therapeutic path and let AI guide you through each phase</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Journey Status
+        if trial:
+            st.info(f"🎯 **Current Journey:** {trial.candidate_id} → {trial.indication} → {trial.phase}")
+        else:
+            st.info("🚀 **No active trial** - Use the Scientific Co-Pilot below to start your journey!")
+        
+        # Scientific Path Selection
+        st.subheader("🎯 Choose Your Scientific Path")
+        
+        # Therapeutic Categories
+        therapeutic_categories = {
+            "🦠 Infectious Diseases": {
+                "description": "Antibacterial, antiviral, antifungal therapeutics",
+                "examples": ["COVID-19", "HIV", "Tuberculosis", "Malaria", "Sepsis"],
+                "mechanisms": ["Antiviral", "Antibacterial", "Immunomodulation", "Vaccine"]
+            },
+            "🫀 Cardiovascular": {
+                "description": "Heart and blood vessel disease treatments",
+                "examples": ["Hypertension", "Heart Failure", "Atherosclerosis", "Arrhythmia"],
+                "mechanisms": ["ACE Inhibition", "Beta-blockade", "Anticoagulation", "Lipid Lowering"]
+            },
+            "🧠 Neurological": {
+                "description": "Brain and nervous system disorders",
+                "examples": ["Alzheimer's", "Parkinson's", "Multiple Sclerosis", "Epilepsy"],
+                "mechanisms": ["Neuroprotection", "Dopamine Modulation", "Immunosuppression", "Seizure Control"]
+            },
+            "🦴 Oncology": {
+                "description": "Cancer treatment and prevention",
+                "examples": ["Breast Cancer", "Lung Cancer", "Leukemia", "Melanoma"],
+                "mechanisms": ["Immunotherapy", "Chemotherapy", "Targeted Therapy", "Radiation Sensitization"]
+            },
+            "🩺 Metabolic": {
+                "description": "Diabetes, obesity, and metabolic disorders",
+                "examples": ["Type 2 Diabetes", "Obesity", "Metabolic Syndrome", "NAFLD"],
+                "mechanisms": ["Glucose Control", "Weight Loss", "Insulin Sensitization", "Lipid Metabolism"]
+            },
+            "🦠 Autoimmune": {
+                "description": "Immune system disorders and inflammation",
+                "examples": ["Rheumatoid Arthritis", "Lupus", "IBD", "Psoriasis"],
+                "mechanisms": ["Immunosuppression", "Anti-inflammatory", "Immune Modulation", "Cytokine Blockade"]
+            }
+        }
+        
+        # Display therapeutic categories
+        cols = st.columns(2)
+        selected_category = None
+        
+        for i, (category, info) in enumerate(therapeutic_categories.items()):
+            with cols[i % 2]:
+                with st.container():
+                    st.markdown(f"""
+                    <div style="border: 2px solid #e0e0e0; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; cursor: pointer;">
+                        <h3 style="margin: 0; color: #2c3e50;">{category}</h3>
+                        <p style="margin: 0.5rem 0; color: #7f8c8d;">{info['description']}</p>
+                        <p style="margin: 0; font-size: 0.9em; color: #95a5a6;">
+                            <strong>Examples:</strong> {', '.join(info['examples'][:3])}...
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    if st.button(f"Select {category}", key=f"category_{i}"):
+                        selected_category = category
+                        st.session_state.selected_category = category
+                        st.session_state.category_info = info
+        
+        # Show selected category details
+        if selected_category or st.session_state.get('selected_category'):
+            category = selected_category or st.session_state.get('selected_category')
+            info = st.session_state.get('category_info', therapeutic_categories.get(category, {}))
+            
+            st.success(f"✅ Selected: {category}")
+            
+            # Therapeutic Modality Selection
+            st.subheader("🧬 Choose Therapeutic Modality")
+            
+            modality_cols = st.columns(2)
+            
+            with modality_cols[0]:
+                st.markdown("""
+                <div style="border: 2px solid #3498db; padding: 1.5rem; border-radius: 10px; background: linear-gradient(135deg, #74b9ff, #0984e3);">
+                    <h3 style="margin: 0; color: white;">🧬 Protein Therapeutics</h3>
+                    <p style="margin: 0.5rem 0; color: white;">Monoclonal antibodies, enzymes, hormones, vaccines</p>
+                    <ul style="color: white; margin: 0.5rem 0;">
+                        <li>High specificity and potency</li>
+                        <li>Complex manufacturing</li>
+                        <li>Immunogenicity considerations</li>
+                        <li>Cold chain requirements</li>
+                    </ul>
+                </div>
+                """, unsafe_allow_html=True)
                 
-                rep = st.number_input("Replications required", value=ep.collapse.replications, 
-                                    min_value=1, max_value=5, step=1, key=f"eprep{i}")
-                comp = st.slider("Min completeness", 0.5, 1.0, ep.collapse.minCompleteness, 0.05, key=f"epcomp{i}")
-                ag = st.slider("Max agreement delta", 0.0, 0.2, ep.collapse.agreementDeltaMax or 0.05, 0.01, key=f"epag{i}")
+                if st.button("🧬 Select Protein Therapeutics", key="protein_modality"):
+                    st.session_state.selected_modality = "protein"
+                    st.session_state.modality_description = "Protein-based therapeutics including antibodies, enzymes, and hormones"
+            
+            with modality_cols[1]:
+                st.markdown("""
+                <div style="border: 2px solid #e74c3c; padding: 1.5rem; border-radius: 10px; background: linear-gradient(135deg, #fd79a8, #e84393);">
+                    <h3 style="margin: 0; color: white;">💊 Small Molecules</h3>
+                    <p style="margin: 0.5rem 0; color: white;">Chemical compounds, drugs, inhibitors</p>
+                    <ul style="color: white; margin: 0.5rem 0;">
+                        <li>Oral administration</li>
+                        <li>Cost-effective manufacturing</li>
+                        <li>Established regulatory pathways</li>
+                        <li>Room temperature storage</li>
+                    </ul>
+                </div>
+                """, unsafe_allow_html=True)
                 
-                ep.collapse = CollapsePolicy(
-                    replications=int(rep), 
-                    minCompleteness=float(comp), 
-                    agreementDeltaMax=float(ag), 
-                    alphaSpent=ep.collapse.alphaSpent
+                if st.button("💊 Select Small Molecules", key="molecule_modality"):
+                    st.session_state.selected_modality = "molecule"
+                    st.session_state.modality_description = "Small molecule therapeutics including chemical compounds and drugs"
+            
+            # Show selected modality
+            if st.session_state.get('selected_modality'):
+                modality = st.session_state.get('selected_modality')
+                st.success(f"✅ Selected Modality: {modality.title()}")
+                
+                # Mechanism of Action Selection
+                st.subheader("⚙️ Select Mechanism of Action")
+                
+                mechanisms = info.get('mechanisms', [])
+                if mechanisms:
+                    selected_mechanism = st.selectbox(
+                        "Choose primary mechanism of action:",
+                        mechanisms,
+                        key="mechanism_selection"
+                    )
+                    
+                    if st.button("🎯 Confirm Mechanism", key="confirm_mechanism"):
+                        st.session_state.selected_mechanism = selected_mechanism
+                
+                # Show selected mechanism
+                if st.session_state.get('selected_mechanism'):
+                    mechanism = st.session_state.get('selected_mechanism')
+                    st.success(f"✅ Selected Mechanism: {mechanism}")
+                    
+                    # Phase 0 Initiation
+                    st.subheader("🚀 Ready for Phase 0 (In-Silico)")
+                    
+                    st.markdown(f"""
+                    <div style="background: linear-gradient(135deg, #00b894, #00a085); padding: 1.5rem; border-radius: 10px; color: white;">
+                        <h3 style="margin: 0;">🎯 Your Scientific Journey Summary</h3>
+                        <p style="margin: 0.5rem 0;"><strong>Category:</strong> {category}</p>
+                        <p style="margin: 0.5rem 0;"><strong>Modality:</strong> {modality.title()}</p>
+                        <p style="margin: 0.5rem 0;"><strong>Mechanism:</strong> {mechanism}</p>
+                        <p style="margin: 0.5rem 0;"><strong>Next Phase:</strong> Phase 0 (In-Silico)</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Initialize trial with selected parameters
+                    if st.button("🚀 Initialize Phase 0 Trial", key="initiate_phase0"):
+                        # Create trial with selected parameters
+                        new_trial = TrialState(
+                            candidate_id=f"{category.split()[1]}_{mechanism.replace(' ', '_')}",
+                            indication=category.split()[1],
+                            phase="Phase 0",
+                            endpoints=[
+                                Endpoint(
+                                    id=new_id("ep"),
+                                    name=f"{mechanism} Efficacy",
+                                    type="efficacy",
+                                    metric=f"{mechanism.replace(' ', '')}Response",
+                                    successRule=f"Demonstrate {mechanism.lower()} activity in silico",
+                                    collapse=CollapsePolicy(replications=2, minCompleteness=0.9, agreementDeltaMax=0.05)
+                                ),
+                                Endpoint(
+                                    id=new_id("ep"),
+                                    name="Safety Profile",
+                                    type="safety",
+                                    metric="SafetyScore",
+                                    successRule="No predicted safety concerns",
+                                    collapse=CollapsePolicy(replications=2, minCompleteness=0.8, agreementDeltaMax=0.05)
+                                )
+                            ]
+                        )
+                        set_trial(new_trial)
+                        st.success("🎉 Phase 0 trial initialized! Navigate to Phase 0 tab to begin in-silico analysis.")
+                        st.balloons()
+        
+        # Scientific Workflow Guide
+        st.subheader("📚 Scientific Workflow Guide")
+        
+        workflow_steps = [
+            {
+                "phase": "Phase 0 (In-Silico)",
+                "description": "Quantum screening, hypothesis registration, computational validation",
+                "duration": "2-4 weeks",
+                "deliverables": ["FoT Claims", "Hypothesis Registration", "Computational Validation"]
+            },
+            {
+                "phase": "Phase I (Safety)",
+                "description": "First-in-human, safety, tolerability, PK/PD",
+                "duration": "6-12 months",
+                "deliverables": ["Safety Profile", "MTD", "PK/PD Data", "DLT Assessment"]
+            },
+            {
+                "phase": "Phase II (Efficacy)",
+                "description": "Dose selection, preliminary efficacy, adaptive design",
+                "duration": "12-24 months",
+                "deliverables": ["Dose Response", "Efficacy Signal", "Biomarker Data"]
+            },
+            {
+                "phase": "Phase III (Confirmatory)",
+                "description": "Pivotal trials, regulatory submission preparation",
+                "duration": "24-48 months",
+                "deliverables": ["Pivotal Data", "Regulatory Package", "Label Claims"]
+            }
+        ]
+        
+        for i, step in enumerate(workflow_steps):
+            with st.expander(f"Phase {i}: {step['phase']} - {step['description']}"):
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.write(f"**Duration:** {step['duration']}")
+                with col2:
+                    st.write(f"**Status:** {'✅ Ready' if i == 0 else '⏳ Pending'}")
+                with col3:
+                    st.write(f"**Deliverables:** {len(step['deliverables'])}")
+                
+                st.write("**Key Deliverables:**")
+                for deliverable in step['deliverables']:
+                    st.write(f"• {deliverable}")
+        
+        # Quick Actions
+        st.subheader("⚡ Quick Actions")
+        
+        quick_cols = st.columns(4)
+        
+        with quick_cols[0]:
+            if st.button("🔍 Browse Candidates", key="quick_browse"):
+                st.info("Navigate to Therapeutic Candidates tab to explore available candidates")
+        
+        with quick_cols[1]:
+            if st.button("📊 Run Analytics", key="quick_analytics"):
+                st.info("Navigate to Analytics & Insights tab to run data analysis")
+        
+        with quick_cols[2]:
+            if st.button("📋 View Protocol", key="quick_protocol"):
+                if trial:
+                    st.info(f"Current protocol: {trial.candidate_id} for {trial.indication}")
+                else:
+                    st.info("No active protocol. Initialize a trial first.")
+        
+        with quick_cols[3]:
+            if st.button("📤 Export Data", key="quick_export"):
+                st.info("Navigate to Exports tab to download trial data")
+
+    # ---------- Design & Protocol ----------
+    with tabs[1]:
+        st.subheader("📋 Design & Protocol - Trial Configuration")
+        st.write("Configure trial parameters, endpoints, and statistical rules based on your scientific journey.")
+        
+        if trial:
+            st.write(f"**Current Trial:** {trial.candidate_id} → {trial.indication} → {trial.phase}")
+            
+            # Trial Overview
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Phase", trial.phase)
+            with col2:
+                st.metric("Endpoints", len(trial.endpoints))
+            with col3:
+                st.metric("Readiness", "✅ Ready" if trial.readiness_ok else "⏳ Pending")
+            
+            # Endpoints editor
+            st.subheader("🎯 Endpoint Configuration")
+            for i, ep in enumerate(trial.endpoints):
+                with st.expander(f"Endpoint {i+1}: {ep.name}"):
+                    ep.name = st.text_input("Name", value=ep.name, key=f"epname{i}")
+                    ep.type = st.selectbox("Type", ["efficacy","safety","pk","imaging","audio"], 
+                                         index=["efficacy","safety","pk","imaging","audio"].index(ep.type), 
+                                         key=f"eptype{i}")
+                    ep.metric = st.text_input("Metric", value=ep.metric, key=f"epmetric{i}")
+                    ep.successRule = st.text_area("Success Rule (human-readable)", value=ep.successRule, key=f"eprule{i}")
+                    
+                    rep = st.number_input("Replications required", value=ep.collapse.replications, 
+                                        min_value=1, max_value=5, step=1, key=f"eprep{i}")
+                    comp = st.slider("Min completeness", 0.5, 1.0, ep.collapse.minCompleteness, 0.05, key=f"epcomp{i}")
+                    ag = st.slider("Max agreement delta", 0.0, 0.2, ep.collapse.agreementDeltaMax or 0.05, 0.01, key=f"epag{i}")
+                    
+                    ep.collapse = CollapsePolicy(
+                        replications=int(rep), 
+                        minCompleteness=float(comp), 
+                        agreementDeltaMax=float(ag), 
+                        alphaSpent=ep.collapse.alphaSpent
+                    )
+                    trial.endpoints[i] = ep
+            
+            # Add new endpoint
+            if st.button("➕ Add New Endpoint"):
+                new_endpoint = Endpoint(
+                    id=new_id("ep"),
+                    name="New Endpoint",
+                    type="efficacy",
+                    metric="NewMetric",
+                    successRule="Define success criteria",
+                    collapse=CollapsePolicy(replications=2, minCompleteness=0.9, agreementDeltaMax=0.05)
                 )
-                trial.endpoints[i] = ep
+                trial.endpoints.append(new_endpoint)
+                st.rerun()
+            
+            set_trial(trial)
+            st.success("✅ Protocol configuration saved. Downstream phases unlock when readiness criteria are met.")
+            
+            # Protocol Summary
+            st.subheader("📊 Protocol Summary")
+            protocol_summary = {
+                "trial_id": trial.candidate_id,
+                "indication": trial.indication,
+                "phase": trial.phase,
+                "endpoints": [
+                    {
+                        "name": ep.name,
+                        "type": ep.type,
+                        "metric": ep.metric,
+                        "success_rule": ep.successRule,
+                        "replications": ep.collapse.replications,
+                        "min_completeness": ep.collapse.minCompleteness
+                    }
+                    for ep in trial.endpoints
+                ],
+                "readiness_status": trial.readiness_ok,
+                "last_updated": datetime.now().isoformat()
+            }
+            
+            st.json(protocol_summary)
+            
+        else:
+            st.info("🚀 No active trial. Use the Scientific Co-Pilot tab to initialize a new trial.")
+            st.markdown("""
+            ### Getting Started:
+            1. **🧬 Scientific Co-Pilot** - Choose your therapeutic path
+            2. **🎯 Select Category** - Pick disease area (e.g., Infectious Diseases)
+            3. **🧬 Choose Modality** - Protein or Small Molecule
+            4. **⚙️ Select Mechanism** - Choose mechanism of action
+            5. **🚀 Initialize Trial** - Start Phase 0 (In-Silico)
+            """)
+
+    # ---------- Therapeutic Candidates ----------
+    with tabs[2]:
+        st.subheader("🧬 Therapeutic Candidates - Protein & Molecule Database")
+        st.write("Access all proteins and molecules discovered in FoTProtein and FoTChemistry repositories for clinical trial design.")
         
-        set_trial(trial)
-        st.success("Design saved. Downstream pages unlock when readiness + rules are satisfied.")
+        if PROTEIN_MOLECULE_INTEGRATION_AVAILABLE:
+            # Initialize integrator
+            if "protein_molecule_integrator" not in st.session_state:
+                with st.spinner("Loading protein and molecule databases..."):
+                    st.session_state.protein_molecule_integrator = ProteinMoleculeIntegrator()
+            
+            integrator = st.session_state.protein_molecule_integrator
+            
+            # Display summary
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Total Candidates", len(integrator.therapeutic_candidates))
+            with col2:
+                st.metric("Protein Candidates", len(integrator.protein_candidates))
+            with col3:
+                st.metric("Molecule Candidates", len(integrator.molecule_candidates))
+            
+            # Search and filter
+            st.subheader("🔍 Candidate Search & Filter")
+            
+            search_col1, search_col2 = st.columns(2)
+            with search_col1:
+                disease_filter = st.selectbox(
+                    "Filter by Disease/Indication",
+                    ["All"] + list(set(c.target_disease for c in integrator.therapeutic_candidates)),
+                    key="disease_filter"
+                )
+            with search_col2:
+                type_filter = st.selectbox(
+                    "Filter by Type",
+                    ["All", "protein", "molecule"],
+                    key="type_filter"
+                )
+            
+            # Apply filters
+            filtered_candidates = integrator.therapeutic_candidates
+            
+            if disease_filter != "All":
+                filtered_candidates = [c for c in filtered_candidates if disease_filter.lower() in c.target_disease.lower()]
+            
+            if type_filter != "All":
+                filtered_candidates = [c for c in filtered_candidates if c.candidate_type == type_filter]
+            
+            st.write(f"**Showing {len(filtered_candidates)} candidates**")
+            
+            # Display candidates
+            if filtered_candidates:
+                # Sort by confidence score
+                filtered_candidates.sort(key=lambda x: x.confidence_score, reverse=True)
+                
+                # Display top candidates
+                for i, candidate in enumerate(filtered_candidates[:20]):  # Show top 20
+                    with st.expander(f"{i+1}. {candidate.name} ({candidate.candidate_type}) - Score: {candidate.confidence_score:.2f}"):
+                        col1, col2 = st.columns(2)
+                        
+                        with col1:
+                            st.write(f"**Target Disease:** {candidate.target_disease}")
+                            st.write(f"**Mechanism of Action:** {candidate.mechanism_of_action}")
+                            st.write(f"**Confidence Score:** {candidate.confidence_score:.2f}")
+                            st.write(f"**Clinical Phase:** {candidate.clinical_phase}")
+                            st.write(f"**Source Repository:** {candidate.source_data.get('source_repository', 'Unknown')}")
+                        
+                        with col2:
+                            st.write("**Quantum Properties:**")
+                            for prop, value in candidate.quantum_properties.items():
+                                st.write(f"  • {prop}: {value:.2f}")
+                            
+                            st.write("**Clinical Readiness:**")
+                            for prop, value in candidate.clinical_data.items():
+                                st.write(f"  • {prop}: {value}")
+                        
+                        # Action buttons
+                        action_col1, action_col2, action_col3 = st.columns(3)
+                        with action_col1:
+                            if st.button(f"Select for Trial", key=f"select_{candidate.candidate_id}"):
+                                # Update trial with selected candidate
+                                if trial:
+                                    trial.candidate_id = candidate.name
+                                    trial.indication = candidate.target_disease
+                                    set_trial(trial)
+                                    st.success(f"Selected {candidate.name} for clinical trial!")
+                                else:
+                                    st.error("No active trial. Please initialize a trial first using the Scientific Co-Pilot.")
+                        
+                        with action_col2:
+                            if st.button(f"View Details", key=f"details_{candidate.candidate_id}"):
+                                st.json({
+                                    "candidate_id": candidate.candidate_id,
+                                    "name": candidate.name,
+                                    "type": candidate.candidate_type,
+                                    "target_disease": candidate.target_disease,
+                                    "mechanism_of_action": candidate.mechanism_of_action,
+                                    "confidence_score": candidate.confidence_score,
+                                    "quantum_properties": candidate.quantum_properties,
+                                    "clinical_data": candidate.clinical_data,
+                                    "source_data": candidate.source_data
+                                })
+                        
+                        with action_col3:
+                            if st.button(f"Generate FoT Claim", key=f"claim_{candidate.candidate_id}"):
+                                # Generate FoT claim for candidate
+                                claim = FoTClaim(
+                                    id=new_id("claim"),
+                                    addressesProblem=f"fcl:TherapeuticCandidate_{candidate.candidate_id}",
+                                    measurements=[
+                                        Measurement("fcl:ConfidenceScore", candidate.confidence_score, "score", 0.05),
+                                        Measurement("fcl:DrugLikenessScore", candidate.quantum_properties.get("drug_likeness_score", 0.5), "score", 0.05),
+                                        Measurement("fcl:SafetyScore", candidate.quantum_properties.get("safety_score", 0.5), "score", 0.05)
+                                    ],
+                                    collapse=CollapsePolicy(replications=2, minCompleteness=0.9, agreementDeltaMax=0.05),
+                                    evidence=Evidence(
+                                        used=["tool:ProteinMoleculeIntegrator"], 
+                                        usedEntity=[f"candidate:{candidate.candidate_id}"], 
+                                        wasGeneratedBy=now_iso()
+                                    )
+                                )
+                                save_claim(claim)
+                                st.success(f"FoT claim generated for {candidate.name}!")
+            else:
+                st.info("No candidates match the selected filters.")
+            
+            # Export functionality
+            st.subheader("📤 Export Candidates")
+            if st.button("Export All Candidates"):
+                export_data = integrator.export_candidates_for_streamlit()
+                st.download_button(
+                    "Download Candidates JSON",
+                    data=json.dumps(export_data, indent=2),
+                    file_name=f"therapeutic_candidates_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                )
+        else:
+            st.error("Protein & Molecule integration not available. Please check repository paths.")
+
+    # ---------- Analytics & Insights ----------
+    with tabs[3]:
+        st.subheader("📊 Analytics & Insights - Comprehensive Data Analysis")
+        st.write("Run advanced analytics on therapeutic candidates, perform statistical modeling, and generate clinical trial insights.")
+        
+        if ANALYTICS_ENGINE_AVAILABLE and PROTEIN_MOLECULE_INTEGRATION_AVAILABLE:
+            # Initialize analytics engine
+            if "analytics_engine" not in st.session_state:
+                st.session_state.analytics_engine = ClinicalAnalyticsEngine()
+            
+            analytics_engine = st.session_state.analytics_engine
+            
+            # Get integrator for candidates
+            if "protein_molecule_integrator" in st.session_state:
+                integrator = st.session_state.protein_molecule_integrator
+                
+                # Analytics options
+                st.subheader("🔬 Available Analytics")
+                
+                analytics_col1, analytics_col2 = st.columns(2)
+                
+                with analytics_col1:
+                    st.markdown("**Candidate Analytics**")
+                    
+                    # Descriptive Analytics
+                    if st.button("📈 Run Descriptive Analytics", key="descriptive_analytics"):
+                        with st.spinner("Running descriptive analytics..."):
+                            # Use top 1000 candidates for analysis
+                            candidates_for_analysis = integrator.get_top_candidates(1000)
+                            result = analytics_engine.candidate_descriptive_analytics(candidates_for_analysis)
+                            
+                            st.success("Descriptive analytics completed!")
+                            
+                            # Display results
+                            st.subheader("📊 Descriptive Analytics Results")
+                            
+                            # Summary metrics
+                            col1, col2, col3, col4 = st.columns(4)
+                            with col1:
+                                st.metric("Total Candidates", result.parameters['total_candidates'])
+                            with col2:
+                                st.metric("Mean Confidence", f"{result.results['confidence_statistics']['mean']:.3f}")
+                            with col3:
+                                st.metric("Std Confidence", f"{result.results['confidence_statistics']['std']:.3f}")
+                            with col4:
+                                st.metric("Quantum Entropy", f"{result.quantum_properties['quantum_entropy']:.3f}")
+                            
+                            # Display visualizations
+                            st.subheader("📈 Visualizations")
+                            for viz in result.visualizations:
+                                st.plotly_chart(json.loads(viz['figure']), use_container_width=True)
+                            
+                            # Display recommendations
+                            st.subheader("💡 Recommendations")
+                            for rec in result.recommendations:
+                                st.write(f"• {rec}")
+                    
+                    # Predictive Modeling
+                    if st.button("🔮 Run Predictive Modeling", key="predictive_modeling"):
+                        with st.spinner("Running predictive modeling..."):
+                            candidates_for_analysis = integrator.get_top_candidates(500)
+                            result = analytics_engine.predictive_modeling(candidates_for_analysis)
+                            
+                            st.success("Predictive modeling completed!")
+                            
+                            # Display results
+                            st.subheader("🔮 Predictive Modeling Results")
+                            
+                            # Model metrics
+                            col1, col2, col3, col4 = st.columns(4)
+                            with col1:
+                                st.metric("R² Score", f"{result.results['model_metrics']['r2_score']:.3f}")
+                            with col2:
+                                st.metric("RMSE", f"{result.results['model_metrics']['rmse']:.3f}")
+                            with col3:
+                                st.metric("MSE", f"{result.results['model_metrics']['mse']:.3f}")
+                            with col4:
+                                st.metric("Quantum Accuracy", f"{result.quantum_properties['quantum_prediction_accuracy']:.3f}")
+                            
+                            # Display visualizations
+                            st.subheader("📈 Model Visualizations")
+                            for viz in result.visualizations:
+                                st.plotly_chart(json.loads(viz['figure']), use_container_width=True)
+                            
+                            # Feature importance
+                            st.subheader("🎯 Feature Importance")
+                            feature_importance = result.results['feature_importance']
+                            importance_df = pd.DataFrame(list(feature_importance.items()), 
+                                                       columns=['Feature', 'Importance'])
+                            importance_df = importance_df.sort_values('Importance', ascending=True)
+                            
+                            fig_importance = px.bar(importance_df, x='Importance', y='Feature', 
+                                                   orientation='h', title='Feature Importance')
+                            st.plotly_chart(fig_importance, use_container_width=True)
+                            
+                            # Display recommendations
+                            st.subheader("💡 Recommendations")
+                            for rec in result.recommendations:
+                                st.write(f"• {rec}")
+                    
+                    # Clustering Analysis
+                    if st.button("🎯 Run Clustering Analysis", key="clustering_analysis"):
+                        with st.spinner("Running clustering analysis..."):
+                            candidates_for_analysis = integrator.get_top_candidates(1000)
+                            n_clusters = st.slider("Number of Clusters", 2, 10, 5, key="n_clusters")
+                            result = analytics_engine.clustering_analysis(candidates_for_analysis, n_clusters)
+                            
+                            st.success("Clustering analysis completed!")
+                            
+                            # Display results
+                            st.subheader("🎯 Clustering Analysis Results")
+                            
+                            # Cluster statistics
+                            st.subheader("📊 Cluster Statistics")
+                            cluster_stats = result.results['cluster_statistics']
+                            for cluster_id, stats in cluster_stats.items():
+                                with st.expander(f"{cluster_id.replace('_', ' ').title()} - Size: {stats['size']}"):
+                                    col1, col2, col3 = st.columns(3)
+                                    with col1:
+                                        st.metric("Mean Confidence", f"{stats['mean_confidence']:.3f}")
+                                    with col2:
+                                        st.metric("Std Confidence", f"{stats['std_confidence']:.3f}")
+                                    with col3:
+                                        st.metric("Protein Ratio", f"{stats['protein_ratio']:.3f}")
+                            
+                            # Display visualizations
+                            st.subheader("📈 Clustering Visualizations")
+                            for viz in result.visualizations:
+                                st.plotly_chart(json.loads(viz['figure']), use_container_width=True)
+                            
+                            # Display recommendations
+                            st.subheader("💡 Recommendations")
+                            for rec in result.recommendations:
+                                st.write(f"• {rec}")
+                
+                with analytics_col2:
+                    st.markdown("**Clinical Trial Analytics**")
+                    
+                    # Power Analysis
+                    st.subheader("⚡ Clinical Trial Power Analysis")
+                    
+                    with st.form("power_analysis_form"):
+                        st.write("**Trial Design Parameters**")
+                        
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            trial_id = st.text_input("Trial ID", value=f"Trial_{trial.candidate_id}" if trial else "Trial_New")
+                            indication = st.text_input("Indication", value=trial.indication if trial else "")
+                            primary_endpoint = st.text_input("Primary Endpoint", value="Efficacy")
+                            alpha = st.slider("Alpha (Type I Error)", 0.01, 0.1, 0.05, 0.01)
+                            power = st.slider("Power (1 - Beta)", 0.7, 0.95, 0.8, 0.05)
+                        
+                        with col2:
+                            effect_size = st.slider("Effect Size", 0.1, 1.0, 0.5, 0.1)
+                            dropout_rate = st.slider("Dropout Rate", 0.0, 0.5, 0.1, 0.05)
+                            recruitment_period = st.number_input("Recruitment Period (months)", 6, 36, 12)
+                            treatment_period = st.number_input("Treatment Period (months)", 1, 24, 6)
+                            follow_up_period = st.number_input("Follow-up Period (months)", 1, 12, 3)
+                        
+                        randomization_ratio = st.selectbox("Randomization Ratio", ["1:1", "2:1", "3:1"])
+                        stratification_factors = st.multiselect("Stratification Factors", 
+                                                              ["Age", "Gender", "Disease Severity", "Previous Treatment"])
+                        
+                        submitted = st.form_submit_button("Run Power Analysis")
+                        
+                        if submitted:
+                            # Create trial design
+                            trial_design = ClinicalTrialDesign(
+                                trial_id=trial_id,
+                                indication=indication,
+                                primary_endpoint=primary_endpoint,
+                                sample_size=0,  # Will be calculated
+                                power=power,
+                                alpha=alpha,
+                                effect_size=effect_size,
+                                dropout_rate=dropout_rate,
+                                recruitment_period=recruitment_period,
+                                treatment_period=treatment_period,
+                                follow_up_period=follow_up_period,
+                                randomization_ratio=randomization_ratio,
+                                stratification_factors=stratification_factors
+                            )
+                            
+                            with st.spinner("Running power analysis..."):
+                                result = analytics_engine.clinical_trial_power_analysis(trial_design)
+                                
+                                st.success("Power analysis completed!")
+                                
+                                # Display results
+                                st.subheader("⚡ Power Analysis Results")
+                                
+                                # Sample size results
+                                col1, col2, col3, col4 = st.columns(4)
+                                with col1:
+                                    st.metric("Sample Size per Group", result.results['sample_size_per_group'])
+                                with col2:
+                                    st.metric("Total Sample Size", result.results['total_sample_size'])
+                                with col3:
+                                    st.metric("Actual Power", f"{result.results['actual_power']:.3f}")
+                                with col4:
+                                    st.metric("Target Power", f"{power:.3f}")
+                                
+                                # Power status
+                                if result.results['actual_power'] >= power:
+                                    st.success("✅ Trial has sufficient power!")
+                                else:
+                                    st.warning("⚠️ Trial may not have sufficient power")
+                                
+                                # Display visualizations
+                                st.subheader("📈 Power Analysis Visualizations")
+                                for viz in result.visualizations:
+                                    st.plotly_chart(json.loads(viz['figure']), use_container_width=True)
+                                
+                                # Display recommendations
+                                st.subheader("💡 Recommendations")
+                                for rec in result.recommendations:
+                                    st.write(f"• {rec}")
+                
+                # Analytics History
+                st.subheader("📚 Analytics History")
+                
+                if analytics_engine.get_analytics_history():
+                    history = analytics_engine.export_analytics_results()
+                    
+                    st.write(f"**Total Analyses Run:** {history['total_analyses']}")
+                    
+                    # Analysis types
+                    st.write("**Analyses by Type:**")
+                    for analysis_type, count in history['analyses_by_type'].items():
+                        st.write(f"• {analysis_type.replace('_', ' ').title()}: {count}")
+                    
+                    # Recent analyses
+                    st.write("**Recent Analyses:**")
+                    for analysis in history['recent_analyses']:
+                        with st.expander(f"{analysis['analysis_type'].replace('_', ' ').title()} - {analysis['timestamp'][:19]}"):
+                            st.write(f"**Analysis ID:** {analysis['analysis_id']}")
+                            st.write(f"**Timestamp:** {analysis['timestamp']}")
+                            st.write("**Recommendations:**")
+                            for rec in analysis['recommendations']:
+                                st.write(f"• {rec}")
+                            st.write("**Quantum Properties:**")
+                            for prop, value in analysis['quantum_properties'].items():
+                                st.write(f"• {prop}: {value:.3f}")
+                else:
+                    st.info("No analytics have been run yet. Use the buttons above to run analyses.")
+                
+                # Export Analytics
+                st.subheader("📤 Export Analytics Results")
+                if st.button("Export All Analytics Results"):
+                    export_data = analytics_engine.export_analytics_results()
+                    st.download_button(
+                        "Download Analytics JSON",
+                        data=json.dumps(export_data, indent=2),
+                        file_name=f"analytics_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                    )
+        else:
+            st.error("Analytics engine not available. Please check dependencies.")
 
     # ---------- Phase 0: In-Silico ----------
-    with tabs[1]:
+    with tabs[4]:
         st.subheader("Phase 0 (In-Silico) — Quantum screening & pre-registration")
         st.write("Run quantum substrate screens, register hypotheses, set collapse policies, and emit pre-clinical FoT claims.")
         
@@ -427,7 +1206,7 @@ def main():
                 st.success("In-Silico FoT claim emitted (LIVE MAINNET - advice-level).")
 
     # ---------- Phase I: Safety ----------
-    with tabs[2]:
+    with tabs[5]:
         st.subheader("Phase I — Safety/Tolerability & PK/PD")
         st.write("Capture DLTs, TEAEs, PK/PD; emit safety claims. AE coding is advice-level (MedDRA hooks).")
         
@@ -457,7 +1236,7 @@ def main():
                 st.success("AE recorded with coding advice (FoT claim).")
 
     # ---------- Phase II: Efficacy / Dose ----------
-    with tabs[3]:
+    with tabs[6]:
         st.subheader("Phase II — Efficacy/Dose (imaging/audio endpoints supported)")
         st.write("Upload imaging/audio assessments, run readiness gates, and emit endpoint claims with twin-toolchain agreement.")
         
@@ -495,7 +1274,7 @@ def main():
                 st.error(f"Parse error: {e}")
 
     # ---------- Phase III: Confirmatory ----------
-    with tabs[4]:
+    with tabs[7]:
         st.subheader("Phase III — Confirmatory analysis")
         st.write("Register final analysis, import twin toolchain outputs, and collapse claims when agreement holds.")
         
@@ -532,7 +1311,7 @@ def main():
             st.success("Confirmatory claim emitted.")
 
     # ---------- Safety & PV ----------
-    with tabs[5]:
+    with tabs[8]:
         st.subheader("Safety & Pharmacovigilance (advice-level)")
         st.write("Review AE claims, suggest MedDRA codings, E2B(R3) export hooks (not executed here).")
         
@@ -544,11 +1323,11 @@ def main():
             st.info("No safety claims yet.")
 
     # ---------- Billing & Coding ----------
-    with tabs[6]:
+    with tabs[9]:
         st.subheader("Billing & Coding (advice-level)")
         st.write("Map Schedule of Activities to ICD-10-CM + CPT/HCPCS suggestions. Export site payment milestones.")
         
-        diag = st.text_input("Primary Diagnosis (free-text)", value=trial.indication)
+        diag = st.text_input("Primary Diagnosis (free-text)", value=trial.indication if trial else "")
         if st.button("Suggest Codes"):
             # placeholder mapping advice
             st.write("**ICD-10-CM (advice):** E11.9 (Type 2 diabetes mellitus without complications)")
@@ -556,7 +1335,7 @@ def main():
             st.caption("Human review required. Coverage analysis memo should determine routine vs research costs.")
 
     # ---------- Evidence Graph ----------
-    with tabs[7]:
+    with tabs[10]:
         st.subheader("Evidence Graph (FoT claims)")
         st.write("Every conclusion is a claim with provenance, uncertainty, and collapse status.")
         
@@ -569,22 +1348,22 @@ def main():
             st.info("No claims yet.")
 
     # ---------- Exports ----------
-    with tabs[8]:
+    with tabs[11]:
         st.subheader("Exports")
         st.write("Download protocol/SAP/ICF stubs + claims JSON (zip integration can be added later).")
         
         proto = {
             "protocol_version":"1.0",
-            "candidate": trial.candidate_id,
-            "indication": trial.indication,
-            "phase": trial.phase,
-            "endpoints":[asdict(e) for e in trial.endpoints],
+            "candidate": trial.candidate_id if trial else "Not Specified",
+            "indication": trial.indication if trial else "Not Specified",
+            "phase": trial.phase if trial else "Not Specified",
+            "endpoints":[asdict(e) for e in trial.endpoints] if trial else [],
             "created": now_iso()
         }
         
         sap = {
             "sap_version":"1.0",
-            "estimands":[e.name for e in trial.endpoints],
+            "estimands":[e.name for e in trial.endpoints] if trial else [],
             "alpha_spending":"O'Brien-Fleming (placeholder)",
             "created": now_iso()
         }

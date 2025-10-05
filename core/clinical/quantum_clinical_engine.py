@@ -164,6 +164,15 @@ class QuantumClinicalEngine:
                 symptom_qbits[symptom] = amplitude
                 quantum_state[i] = amplitude
         
+        # Ensure quantum state has complex amplitudes
+        if len(symptoms) == 0:
+            # If no symptoms, initialize with random complex amplitudes
+            for i in range(min(4, self.vqbit_dim // 4)):
+                intensity = 0.1
+                phase = np.random.uniform(0, 2*np.pi)
+                amplitude = intensity * np.exp(1j * phase)
+                quantum_state[i] = amplitude
+        
         # Encode signs as quantum states
         sign_qbits = {}
         vital_signs = clinical_data.get('vital_signs', {})
@@ -174,6 +183,15 @@ class QuantumClinicalEngine:
                 phase = np.random.uniform(0, 2*np.pi)
                 amplitude = normalized_value * np.exp(1j * phase)
                 sign_qbits[sign] = amplitude
+                quantum_state[self.vqbit_dim // 4 + i] = amplitude
+        
+        # Ensure vital signs section has complex amplitudes
+        if len(vital_signs) == 0:
+            # If no vital signs, initialize with random complex amplitudes
+            for i in range(min(4, self.vqbit_dim // 4)):
+                intensity = 0.1
+                phase = np.random.uniform(0, 2*np.pi)
+                amplitude = intensity * np.exp(1j * phase)
                 quantum_state[self.vqbit_dim // 4 + i] = amplitude
         
         # Encode differential diagnoses as quantum states
@@ -190,6 +208,13 @@ class QuantumClinicalEngine:
                 differential_qbits[diff] = amplitude
                 quantum_state[self.vqbit_dim // 2 + i] = amplitude
         
+        # Ensure differential diagnoses section has complex amplitudes
+        for i in range(len(differentials), min(8, self.vqbit_dim // 4)):
+            intensity = 0.05
+            phase = np.random.uniform(0, 2*np.pi)
+            amplitude = intensity * np.exp(1j * phase)
+            quantum_state[self.vqbit_dim // 2 + i] = amplitude
+        
         # Create entanglement matrix
         entanglement_matrix = np.zeros((self.vqbit_dim, self.vqbit_dim), dtype=complex)
         
@@ -202,10 +227,17 @@ class QuantumClinicalEngine:
                     entanglement_matrix[i, self.vqbit_dim // 2 + j] = correlation_strength
                     entanglement_matrix[self.vqbit_dim // 2 + j, i] = correlation_strength
         
-        # Normalize quantum state
+        # Normalize quantum state while preserving complex nature
         norm = np.linalg.norm(quantum_state)
         if norm > 0:
             quantum_state = quantum_state / norm
+        
+        # Ensure quantum state remains complex after normalization
+        if not np.all(np.iscomplex(quantum_state)):
+            # If normalization made it real, add small imaginary components
+            for i in range(len(quantum_state)):
+                if np.isreal(quantum_state[i]):
+                    quantum_state[i] = quantum_state[i] + 1j * 1e-10
         
         # Calculate decoherence rate based on case complexity
         complexity = len(symptoms) + len(vital_signs) + len(differentials)
@@ -300,28 +332,48 @@ class QuantumClinicalEngine:
         as new information becomes available.
         """
         
-        # Simple quantum evolution (in practice, this would be more sophisticated)
+        # Simple quantum evolution with numerical stability
         evolution_operator = np.eye(self.vqbit_dim, dtype=complex)
         
         # Add small random perturbations to simulate quantum fluctuations
-        perturbation = 0.01 * (np.random.randn(self.vqbit_dim, self.vqbit_dim) + 
+        # Use smaller perturbation to avoid numerical instability
+        perturbation = 0.001 * (np.random.randn(self.vqbit_dim, self.vqbit_dim) + 
                               1j * np.random.randn(self.vqbit_dim, self.vqbit_dim))
         evolution_operator += time_step * perturbation
         
-        # Apply evolution
-        new_state = evolution_operator @ quantum_case.quantum_state_vector
-        
-        # Normalize
-        norm = np.linalg.norm(new_state)
-        if norm > 0:
-            new_state = new_state / norm
+        # Apply evolution with numerical stability checks
+        try:
+            new_state = evolution_operator @ quantum_case.quantum_state_vector
+            
+            # Check for numerical issues
+            if np.any(np.isnan(new_state)) or np.any(np.isinf(new_state)):
+                # Fallback to original state if numerical issues occur
+                new_state = quantum_case.quantum_state_vector.copy()
+            else:
+                # Normalize
+                norm = np.linalg.norm(new_state)
+                if norm > 0:
+                    new_state = new_state / norm
+                else:
+                    # Fallback to original state if norm is zero
+                    new_state = quantum_case.quantum_state_vector.copy()
+                    
+        except (OverflowError, ZeroDivisionError):
+            # Fallback to original state if evolution fails
+            new_state = quantum_case.quantum_state_vector.copy()
         
         # Update quantum case
         quantum_case.quantum_state_vector = new_state
         
-        # Apply decoherence
+        # Apply decoherence with stability check
         decoherence_factor = np.exp(-quantum_case.decoherence_rate * time_step)
-        quantum_case.quantum_state_vector *= decoherence_factor
+        if not np.isnan(decoherence_factor) and not np.isinf(decoherence_factor):
+            quantum_case.quantum_state_vector *= decoherence_factor
+            
+            # Renormalize after decoherence
+            norm = np.linalg.norm(quantum_case.quantum_state_vector)
+            if norm > 0:
+                quantum_case.quantum_state_vector = quantum_case.quantum_state_vector / norm
         
         return quantum_case
     

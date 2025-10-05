@@ -1,14 +1,8 @@
+# Quick-Start-Guide
+
 # 🚀 Quick Start Guide
 
 Get up and running with the Field of Truth Clinical Trials system in minutes!
-
-## 🌐 **Live System Access**
-
-**🚀 Public Cloud:** https://fotclinicaltrials.streamlit.app/  
-**💻 Local Development:** http://localhost:8502  
-**📖 Complete User Guide:** [Complete User Guide](Complete-User-Guide)  
-
-*No installation required for cloud access - start immediately!*
 
 ## 📋 **Prerequisites**
 
@@ -27,57 +21,45 @@ Get up and running with the Field of Truth Clinical Trials system in minutes!
 
 ## ⚡ **5-Minute Setup**
 
-### **Option 1: Cloud Access (Recommended)**
-1. **Open Browser**: Navigate to https://fotclinicaltrials.streamlit.app/
-2. **Wait for Load**: System loads automatically (30-60 seconds)
-3. **Start Using**: Begin with Scientific Co-Pilot tab
-4. **No Installation Required**: Everything runs in your browser
-
-### **Option 2: Local Development**
+### **Step 1: Clone Repository**
 ```bash
-# Step 1: Clone Repository
 git clone https://github.com/FortressAI/FoTClinicalTrials.git
 cd FoTClinicalTrials
-
-# Step 2: Install Dependencies
-pip install -r requirements.txt
-
-# Step 3: Launch Application
-streamlit run clinical_app.py --server.port 8502
-
-# Step 4: Open Browser
-# Navigate to http://localhost:8502
 ```
+
+### **Step 2: Install Dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+### **Step 3: Launch Application**
+```bash
+streamlit run clinical_app.py
+```
+
+### **Step 4: Open Browser**
+The application will automatically open in your default browser at `http://localhost:8501`
 
 ## 🏥 **Create Your First Clinical Trial**
 
-### **Using the Scientific Co-Pilot (Recommended)**
-
-#### **Step 1: Start Your Scientific Journey**
-1. **Navigate**: Click "🧬 Scientific Co-Pilot" tab
-2. **Select Category**: Choose therapeutic area (e.g., "🦠 Infectious Diseases")
-3. **Choose Modality**: Pick "🧬 Protein Therapeutics" or "💊 Small Molecules"
-4. **Select Mechanism**: Choose mechanism (e.g., "Antiviral")
-5. **Initialize Trial**: Click "🚀 Initialize Phase 0 Trial"
-
-#### **Step 2: Configure Protocol**
-1. **Navigate**: Click "Design & Protocol" tab
-2. **Review Endpoints**: Check default endpoints
-3. **Modify Settings**: Adjust parameters as needed
-4. **Save Changes**: System auto-saves
-
-#### **Step 3: Run Phase 0 Analysis**
-1. **Navigate**: Click "Phase 0: In-Silico" tab
-2. **Enter Hypothesis**: Describe your scientific hypothesis
-3. **Pre-register**: Click "Pre-register Hypothesis"
-4. **Execute Screen**: Click "Execute In-Silico Screen"
-5. **Review Claims**: Check generated FoT claims
-
-### **Traditional Method (Legacy)**
+### **1. Initialize Trial**
 1. **Sidebar**: Enter candidate ID (e.g., "Protein-X17")
 2. **Indication**: Enter indication (e.g., "Type 2 Diabetes")
 3. **Phase**: Select current phase (e.g., "Phase I")
 4. **Click**: "Initialize / Update Trial"
+
+### **2. Design Protocol**
+1. **Navigate**: To "Design & Protocol" tab
+2. **Endpoints**: Review default endpoints
+3. **Modify**: Adjust endpoint parameters as needed
+4. **Save**: Click "Design saved" confirmation
+
+### **3. Run Phase 0 Analysis**
+1. **Navigate**: To "Phase 0: In-Silico" tab
+2. **Hypothesis**: Enter your hypothesis
+3. **Pre-register**: Click "Pre-register Hypothesis"
+4. **Execute**: Click "Execute In-Silico Screen (mock)"
+5. **Review**: Check generated FoT claims
 
 ## ⚛️ **Understanding Quantum Features**
 
@@ -268,3 +250,8 @@ echo $FOT_CLINICAL_DB_URL
 **🏥 Patient Safety First | ⚛️ Quantum Enhanced | 🔒 Compliant**
 
 *Need help? Check out our [FAQ](FAQ) or [Support Resources](Support-Resources) for additional assistance.*
+
+
+---
+**🏥⚛️ Field of Truth Clinical Trials - Quick-Start-Guide**
+**🔒 FDA Compliant | 🛡️ EMA Ready | ⚛️ Quantum Enhanced**
