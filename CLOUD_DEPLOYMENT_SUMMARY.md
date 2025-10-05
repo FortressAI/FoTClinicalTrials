@@ -60,7 +60,7 @@ ProteinMoleculeIntegrator(
 
 ## 🌐 **Live System Access**
 
-**🚀 Public Cloud URL:** https://fotclinicaltrials.streamlit.app/
+**🚀 Public Cloud URL:** https://fot-clinicaltrials.streamlit.app/
 
 ### **Features Available**
 - ✅ **Scientific Co-Pilot**: Complete guided workflow
