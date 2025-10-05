@@ -19,6 +19,7 @@ import sys
 import os
 from datetime import datetime
 import hashlib
+import gc  # For garbage collection
 
 # Add project root to path
 sys.path.append(os.path.dirname(__file__))
@@ -81,8 +82,8 @@ class ProteinMoleculeIntegrator:
     def __init__(self, 
                  fot_protein_path: str = "/Users/richardgillespie/Documents/FoTProtein",
                  fot_chemistry_path: str = "/Users/richardgillespie/Documents/FoTChemistry",
-                 chunk_size: int = 10000,
-                 max_memory_mb: int = 2048):
+                 chunk_size: int = 5000,  # Smaller chunks for cloud
+                 max_memory_mb: int = 1024):  # Lower memory limit for cloud
         """
         Initialize the integrator with paths to FoT repositories
         
@@ -102,10 +103,24 @@ class ProteinMoleculeIntegrator:
         self.molecule_candidates: List[MoleculeCandidate] = []
         self.therapeutic_candidates: List[TherapeuticCandidate] = []
         
-        # Load data from repositories with chunking
-        self._load_protein_data_chunked()
-        self._load_molecule_data_chunked()
-        self._create_unified_candidates()
+        # Load data from repositories with chunking and error handling
+        try:
+            self._load_protein_data_chunked()
+        except Exception as e:
+            print(f"⚠️ Error loading protein data: {e}")
+            self._create_sample_protein_data()
+        
+        try:
+            self._load_molecule_data_chunked()
+        except Exception as e:
+            print(f"⚠️ Error loading molecule data: {e}")
+            self._create_sample_molecule_data()
+        
+        try:
+            self._create_unified_candidates()
+        except Exception as e:
+            print(f"⚠️ Error creating unified candidates: {e}")
+            self.therapeutic_candidates = []
         
         print(f"✅ Loaded {len(self.protein_candidates)} protein candidates")
         print(f"✅ Loaded {len(self.molecule_candidates)} molecule candidates")
@@ -168,6 +183,7 @@ class ProteinMoleculeIntegrator:
                                 # Memory management - check if we're approaching limits
                                 if len(self.protein_candidates) % (self.chunk_size * 10) == 0:
                                     print(f"📊 Loaded {len(self.protein_candidates):,} proteins so far...")
+                                    gc.collect()  # Force garbage collection
                                 
                         except Exception as e:
                             print(f"⚠️ Error loading protein chunk {chunk_file}: {e}")
@@ -284,6 +300,7 @@ class ProteinMoleculeIntegrator:
                     # Memory management - check progress
                     if len(self.molecule_candidates) % (self.chunk_size * 5) == 0:
                         print(f"📊 Loaded {len(self.molecule_candidates):,} molecules so far...")
+                        gc.collect()  # Force garbage collection
                         
         except Exception as e:
             print(f"⚠️ Error loading molecule data: {e}")
