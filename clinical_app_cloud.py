@@ -26,7 +26,6 @@ import sys
 import os
 from pathlib import Path
 import gc  # For garbage collection
-import psutil  # For memory monitoring
 
 # Add project root to path
 sys.path.append(os.path.dirname(__file__))
@@ -256,9 +255,14 @@ def now_iso():
     return dt.datetime.now().isoformat()
 
 def get_memory_usage():
-    """Get current memory usage in MB"""
-    process = psutil.Process(os.getpid())
-    return process.memory_info().rss / 1024 / 1024
+    """Get current memory usage in MB (simplified for cloud)"""
+    try:
+        import psutil
+        process = psutil.Process(os.getpid())
+        return process.memory_info().rss / 1024 / 1024
+    except ImportError:
+        # Fallback for cloud deployment
+        return 0.0
 
 def cleanup_memory():
     """Force garbage collection to free memory"""
